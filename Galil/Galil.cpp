@@ -32,9 +32,29 @@ Galil::~Galil() {
 	delete Functions;
 }
 void Galil::DigitalOutput(uint16_t value) {
--
-
+	const unsigned low = value & 0xFF;
+	const unsigned high = (value >> 8) & 0xFF;
+	const std::string cmd = "OP " + std::to_string(low) + "," + std::to_string(high);
+	char buf[128] = {};
+	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 }
+void Galil::DigitalByteOutput(bool bank, uint8_t value) {
+	if (bank) {
+		
+		
+		const std::string cmd = "OP " +  std::to_string(0) + "," + std::to_string(value);
+		char buf[128] = {};
+		Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	}
+	else {
+		
+		const std::string cmd = "OP " + std::to_string(value);
+		char buf[128] = {};
+		Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	}
+}
+
+
 void Galil::setSetPoint(int s) {
 	setPoint = s;
 }
