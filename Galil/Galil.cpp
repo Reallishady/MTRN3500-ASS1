@@ -35,7 +35,7 @@ void Galil::DigitalOutput(uint16_t value) {
 	const unsigned low = value & 0xFF;
 	const unsigned high = (value >> 8) & 0xFF;
 	const std::string cmd = "OP " + std::to_string(low) + "," + std::to_string(high);
-	char buf[128] = {};
+	char buf[G_] = {};
 	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 }
 void Galil::DigitalByteOutput(bool bank, uint8_t value) {
@@ -43,7 +43,7 @@ void Galil::DigitalByteOutput(bool bank, uint8_t value) {
 		
 		
 		const std::string cmd = "OP " +  std::to_string(0) + "," + std::to_string(value);
-		char buf[128] = {};
+		char buf[G_] = {};
 		Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	}
 	else {
@@ -59,15 +59,26 @@ void Galil::DigitalBitOutput(bool val, uint8_t bit) {
 	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 }
 uint16_t Galil::DigitalInput() {
-	uint16_t x;
+	uint16_t x = {};
 	for (int i = 0; i < 16; i++) {
-		const std::string cmd = "MG " + "@IN[" + std::to_string(i) + "]";
-		char buf[64] = {};
-		x+= Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
-	}
-	return x;
+		if (DigitalBitInput(i)) {
+
+		}
+	
+	
 }
 
+uint8_t Galil::DigitalByteInput(bool bank) {
+	
+}
+bool Galil::DigitalBitInput(uint8_t bit) {
+	const std::string cmd = "MG @IN[" + std::to_string(bit) + "];";
+	char buf[G_SMALL_BUFFER] = {};
+	Functins->GCommand(g,cmd.c_str(), buf, sizeof(buf), nullptr);
+	return std::atoi(buf) == 1;
+}
+
+}
 void Galil::setSetPoint(int s) {
 	setPoint = s;
 }
