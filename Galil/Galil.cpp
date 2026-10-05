@@ -62,23 +62,31 @@ uint16_t Galil::DigitalInput() {
 	uint16_t x = {};
 	for (int i = 0; i < 16; i++) {
 		if (DigitalBitInput(i)) {
-
+			x |= (1 << i);
 		}
-	
-	
+	}
+	return x;
 }
 
+
 uint8_t Galil::DigitalByteInput(bool bank) {
-	
+	uint8_t x = {};
+	const int offset = bank ? 8 : 0;   
+	for (int i = 0; i < 8; i++) {
+		if (DigitalBitInput(offset + i)) {
+			x |= (1 << i);            
+		}
+	}
+	return x;
 }
 bool Galil::DigitalBitInput(uint8_t bit) {
 	const std::string cmd = "MG @IN[" + std::to_string(bit) + "];";
 	char buf[G_SMALL_BUFFER] = {};
-	Functins->GCommand(g,cmd.c_str(), buf, sizeof(buf), nullptr);
+	Functions->GCommand(g,cmd.c_str(), buf, sizeof(buf), nullptr);
 	return std::atoi(buf) == 1;
 }
 
-}
+
 void Galil::setSetPoint(int s) {
 	setPoint = s;
 }
@@ -95,7 +103,7 @@ double Galil::getKp() {
 void Galil::setKi(double gain) {
 	ControlParameters[1] = gain;
 }
-double Galil::getKi() {
+const double Galil::getKi() {
 	return ControlParameters[1];
 }
 void Galil::setKd(double gain) {
