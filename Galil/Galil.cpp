@@ -53,7 +53,20 @@ void Galil::DigitalByteOutput(bool bank, uint8_t value) {
 		Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	}
 }
-
+void Galil::DigitalBitOutput(bool val, uint8_t bit) {
+	const std::string cmd = "SB " + std::to_string(bit);
+	char buf[128] = {};
+	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+}
+uint16_t Galil::DigitalInput() {
+	uint16_t x;
+	for (int i = 0; i < 16; i++) {
+		const std::string cmd = "MG " + "@IN[" + std::to_string(i) + "]";
+		char buf[64] = {};
+		x+= Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	}
+	return x;
+}
 
 void Galil::setSetPoint(int s) {
 	setPoint = s;
