@@ -30,7 +30,7 @@ public:
 	// TODO: complete this function.
 	Galil(EmbeddedFunctions* Funcs, GCStringIn address);	// Constructor with EmbeddedFunciton pre-initialised and passed in.
 	// TODO: complete this function.
-	Galil(const Galil& other);								// Copy constructor to copy the state of all elements within the object other.
+	Galil(const Galil& other);					// Copy constructor to copy the state of all elements within the object other.
 															// It should construct a new EmbeddedFunctions object and open a separate connection
 															// (i.e., each class will have a unique value of the GCon g). All other data members
 															// should be transferred.
@@ -44,9 +44,9 @@ public:
 	// TODO: complete this function.
 	void DigitalByteOutput(bool bank, uint8_t value);		// Write to one byte, either high or low byte, as specified by user in 'bank'
 															// 0 = low, 1 = high
-	// TODO: complete this function.
+	// TODO complete this function.
 	void DigitalBitOutput(bool val, uint8_t bit);			// Write single bit to digital outputs. 'bit' specifies which bit
-
+:
 
 	// DIGITAL INPUTS
 	// TODO: complete this function.
@@ -134,4 +134,5 @@ protected:
 	int setPoint;					// Control Setpoint
 
 	// TODO: Add any new data members or functions BELOW (DO NOT ADD THEM ABOVE THIS LINE)
+	
 };

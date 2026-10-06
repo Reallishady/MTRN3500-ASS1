@@ -8,6 +8,8 @@ Galil::Galil() {
 	ControlParameters[1] = 0.0; 
 	ControlParameters[2] = 0.0; 
 	setPoint = 0;
+	lastReturn = G_NO_ERROR;
+	lastResponse[0] = '\0';
 }
 Galil::Galil(EmbeddedFunctions* Funcs, GCStringIn address) {
 	Functions = Funcs;
@@ -17,6 +19,8 @@ Galil::Galil(EmbeddedFunctions* Funcs, GCStringIn address) {
 	ControlParameters[1] = 0.0;
 	ControlParameters[2] = 0.0;
 	setPoint = 0;
+	lastReturn = G_NO_ERROR;
+	lastResponse[0] = '\0';
 }
 Galil::Galil(const Galil& other) {
 	Functions = new EmbeddedFunctions();
@@ -26,6 +30,8 @@ Galil::Galil(const Galil& other) {
 	ControlParameters[1] = other.ControlParameters[1];
 	ControlParameters[2] = other.ControlParameters[2];
 	setPoint = other.setPoint;
+	lastReturn = G_NO_ERROR;
+	lastResponse[0] = '\0';
 }
 Galil::~Galil() {
 	Functions->GClose(g);
@@ -35,28 +41,33 @@ void Galil::DigitalOutput(uint16_t value) {
 	const unsigned low = value & 0xFF;
 	const unsigned high = (value >> 8) & 0xFF;
 	const std::string cmd = "OP " + std::to_string(low) + "," + std::to_string(high);
-	char buf[G_] = {};
-	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	char buf[G_SMALL_BUFFER] = {};
+	lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	lastResponse = buf;
 }
 void Galil::DigitalByteOutput(bool bank, uint8_t value) {
+	char buf[G_SMALL_BUFFER] = {};
 	if (bank) {
 		
-		
 		const std::string cmd = "OP " +  std::to_string(0) + "," + std::to_string(value);
-		char buf[G_] = {};
-		Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+		lastReturn  = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	}
 	else {
 		
-		const std::string cmd = "OP " + std::to_string(value);
-		char buf[128] = {};
-		Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+		const std::string cmd = "OP " + std::to_string(value);;
+		lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	}
+	lastResponse = buf;
 }
-void Galil::DigitalBitOutput(bool val, uint8_t bit) {
-	const std::string cmd = "SB " + std::to_string(bit);
-	char buf[128] = {};
-	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+void Galil::DigitalBitOutput(bool val, uint8_t bit)
+{
+	std::string cmd = (val ? "SB " : "CB ") + std::to_string(bit);
+
+	char buf[G_SMALL_BUFFER] = {};
+
+	lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+
+	lastResponse = buf;
 }
 uint16_t Galil::DigitalInput() {
 	uint16_t x = {};
@@ -80,13 +91,49 @@ uint8_t Galil::DigitalByteInput(bool bank) {
 	return x;
 }
 bool Galil::DigitalBitInput(uint8_t bit) {
-	const std::string cmd = "MG @IN[" + std::to_string(bit) + "];";
+	const std::string cmd = "MG @IN[" + std::to_string(bit) + "]";
 	char buf[G_SMALL_BUFFER] = {};
-	Functions->GCommand(g,cmd.c_str(), buf, sizeof(buf), nullptr);
+	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	return std::atoi(buf) == 1;
 }
+bool Galil::CheckSuccessfulWrite() {
+	return lastReturn == G_NO_ERROR && lastResponse[0] != '\0' && lastResponse[0] != '?';
+}
+float Galil::AnalogInput(uint8_t channel) {
+	const std::string cmd = "MG @AN[" + std::to_string(channel) + "]";
+	char buf[G_SMALL_BUFFER] = {};
+	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	return static_cast<float>(atof(buf));
+	
+}
+void Galil::AnalogOutput(uint8_t channel, double voltage) {
+	const std::string cmd = "AO " + std::to_string(channel) + "," + std::to_string(voltage);
+	char buf[G_SMALL_BUFFER] = {};
+	lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	lastResponse = buf;
+}
+void Galil::AnalogInputRange(uint8_t channel, uint8_t range) {
+	const std::string cmd = "AQ " + std::to_string(channel) + "," + std::to_string(range);
 
+	char buf[G_SMALL_BUFFER] = {};
 
+	lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	lastResponse = buf;
+}
+void Galil::WriteEncoder() {
+	const std::string cmd = "WE " + std::to_string(0);
+	char buf[G_SMALL_BUFFER] = {};
+
+	lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	lastResponse = buf;
+}
+int Galil::ReadEncoder() {
+	const std::string cmd = "QE " + std::to_string(0);
+	char buf[G_SMALL_BUFFER] = {};
+
+	Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
+	return std::atoi(buf);
+}
 void Galil::setSetPoint(int s) {
 	setPoint = s;
 }
@@ -103,7 +150,7 @@ double Galil::getKp() {
 void Galil::setKi(double gain) {
 	ControlParameters[1] = gain;
 }
-const double Galil::getKi() {
+double Galil::getKi() {
 	return ControlParameters[1];
 }
 void Galil::setKd(double gain) {
