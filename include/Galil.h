@@ -20,7 +20,7 @@ terminated by a semicolon ';'.
 #include <stdint.h>
 
 #include <string>
-
+#include <cstring>
 class Galil {
 public:
 	// TODO: complete this function.

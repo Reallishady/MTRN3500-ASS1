@@ -182,13 +182,11 @@ Galil& Galil::operator=(const Galil& other) {
 	delete Functions;
 	
 	Functions = new EmbeddedFunctions();
-	address = other.address;
 	g = GCon();
-	Functions->GOpen(address.c_str(), &g);
+	Functions->GOpen("192.168.0.120", &g);
 
 	for (int i = 0; i < 3; i++) ControlParameters[i] = other.ControlParameters[i];
 	setPoint = other.setPoint;
-	outputState = other.outputState;
 	lastReturn = G_NO_ERROR;
 	lastResponse.clear();
 
