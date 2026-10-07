@@ -46,7 +46,7 @@ public:
 															// 0 = low, 1 = high
 	// TODO complete this function.
 	void DigitalBitOutput(bool val, uint8_t bit);			// Write single bit to digital outputs. 'bit' specifies which bit
-:
+
 
 	// DIGITAL INPUTS
 	// TODO: complete this function.
@@ -132,6 +132,8 @@ protected:
 	GCon g;							// Connection handle for the Galil, passed through most Galil function calls
 	double ControlParameters[3];	// Contains the controller gain values: K_p, K_i, K_d in that order 
 	int setPoint;					// Control Setpoint
+	GReturn lastReturn;
+	std::string lastResponse;
 
 	// TODO: Add any new data members or functions BELOW (DO NOT ADD THEM ABOVE THIS LINE)
 	

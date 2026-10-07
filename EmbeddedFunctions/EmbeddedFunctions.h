@@ -12,10 +12,10 @@ Implement the EmbeddedFunctions class within EmbeddedFunctions.cpp. Test this cl
 #using <System.dll>
 using namespace System;
 using namespace System::Net::Sockets;
-
+using namespace System::Text;
 ref class EmbeddedFunctions {
 public:
-	// TODO: complete this function.
+	// TODO: complete this function.kmn,mn,
 	EmbeddedFunctions() {}
 	// TODO: complete this function.
 	~EmbeddedFunctions() {}
@@ -55,5 +55,7 @@ public:
 	String^ GCommand(String^ command) { return ""; }
 
 private:
+	TcpClient^ Client;
+	NetworkStream^ Stream;
 	// Add any additional member variables and functions as required
 };

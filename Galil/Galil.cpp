@@ -1,15 +1,16 @@
 #include "Galil.h"
+
 Galil::Galil() {
 
 	Functions = new EmbeddedFunctions();
 	g = GCon();
-	Functions->GOpen("192.168.0.120", &g);	
+	Functions->GOpen("192.168.0.120", &g);
 	ControlParameters[0] = 0.0; 
 	ControlParameters[1] = 0.0; 
 	ControlParameters[2] = 0.0; 
 	setPoint = 0;
 	lastReturn = G_NO_ERROR;
-	lastResponse[0] = '\0';
+	lastResponse.clear();
 }
 Galil::Galil(EmbeddedFunctions* Funcs, GCStringIn address) {
 	Functions = Funcs;
@@ -20,7 +21,7 @@ Galil::Galil(EmbeddedFunctions* Funcs, GCStringIn address) {
 	ControlParameters[2] = 0.0;
 	setPoint = 0;
 	lastReturn = G_NO_ERROR;
-	lastResponse[0] = '\0';
+	lastResponse.clear();
 }
 Galil::Galil(const Galil& other) {
 	Functions = new EmbeddedFunctions();
@@ -31,7 +32,7 @@ Galil::Galil(const Galil& other) {
 	ControlParameters[2] = other.ControlParameters[2];
 	setPoint = other.setPoint;
 	lastReturn = G_NO_ERROR;
-	lastResponse[0] = '\0';
+	lastResponse.clear();
 }
 Galil::~Galil() {
 	Functions->GClose(g);
@@ -97,7 +98,7 @@ bool Galil::DigitalBitInput(uint8_t bit) {
 	return std::atoi(buf) == 1;
 }
 bool Galil::CheckSuccessfulWrite() {
-	return lastReturn == G_NO_ERROR && lastResponse[0] != '\0' && lastResponse[0] != '?';
+	return lastReturn == G_NO_ERROR && !lastResponse.empty() && lastResponse[0] != '?';
 }
 float Galil::AnalogInput(uint8_t channel) {
 	const std::string cmd = "MG @AN[" + std::to_string(channel) + "]";
@@ -158,4 +159,38 @@ void Galil::setKd(double gain) {
 }
 double Galil::getKd() {
 	return ControlParameters[2];
+}
+std::ostream& operator<<(std::ostream& output, Galil& galil) {
+	char info[G_SMALL_BUFFER] = {};
+	char ver[G_SMALL_BUFFER] = {};
+
+	GReturn req_1 = galil.Functions->GInfo(galil.g, info, sizeof(info));
+	GReturn req_2 = galil.Functions->GVersion(ver, sizeof(ver));
+
+	if (req_1 == G_NO_ERROR) output << info << "\n\n";
+	else                   output << "GInfo failed (" << req_1 << ")\n\n";
+
+	if (req_2 == G_NO_ERROR) output << ver << "\n\n";
+	else                   output << "GVersion failed (" << req_2 << ")\n\n";
+
+	return output;   
+}
+Galil& Galil::operator=(const Galil& other) {
+	if (this == &other) return *this;      
+	
+	Functions->GClose(g);
+	delete Functions;
+	
+	Functions = new EmbeddedFunctions();
+	address = other.address;
+	g = GCon();
+	Functions->GOpen(address.c_str(), &g);
+
+	for (int i = 0; i < 3; i++) ControlParameters[i] = other.ControlParameters[i];
+	setPoint = other.setPoint;
+	outputState = other.outputState;
+	lastReturn = G_NO_ERROR;
+	lastResponse.clear();
+
+	return *this;
 }
