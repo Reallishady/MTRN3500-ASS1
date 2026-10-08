@@ -1,22 +1,28 @@
 #include "Galil.h"
 #include <iostream>
-
+#using<System.dll>
 int main()
 {
-    EmbeddedFunctions funcs(true);
-    Galil myGalil(&funcs, "192.168.0.120 -d");
+    EmbeddedFunctions* funcs = new EmbeddedFunctions();
+    Galil myGalil(funcs, "192.168.0.120 -d");
 
-    std::cout << "Setting DO0 ON..." << std::endl;
-    myGalil.DigitalOutput(1);
+    //while (true) {
+    //    myGalil.AnalogOutput(0, 2.0);
+    //    System::Threading::Thread::Sleep(1000);
+    //    myGalil.AnalogOutput(0, -2.0);
+    //    System::Threading::Thread::Sleep(1000);
+    //}
+    std::cout << "Enter to start";
+    System::Console::ReadKey();
 
-    std::cout << "Press Enter..." << std::endl;
-    std::cin.get();
+    double voltage = 1;
+    while (true) {
+        double s = myGalil.AnalogInput(0);
+        myGalil.AnalogOutput(0,s);
+    }
+    
 
-    std::cout << "Setting DO0-DO7 ON..." << std::endl;
-    myGalil.DigitalOutput(255);
 
-    std::cout << "Press Enter to finish..." << std::endl;
-    std::cin.get();
 
     return 0;
 }

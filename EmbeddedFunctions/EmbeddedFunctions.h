@@ -10,6 +10,7 @@ Implement the EmbeddedFunctions class within EmbeddedFunctions.cpp. Test this cl
 */
 
 #using <System.dll>
+#include <cstdint>
 using namespace System;
 using namespace System::Net::Sockets;
 using namespace System::Text;

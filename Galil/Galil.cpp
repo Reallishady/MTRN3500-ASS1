@@ -4,7 +4,7 @@ Galil::Galil() {
 
 	Functions = new EmbeddedFunctions();
 	g = GCon();
-	Functions->GOpen("192.168.0.120", &g);
+	Functions->GOpen("192.168.0.120 -d", &g);
 	ControlParameters[0] = 0.0; 
 	ControlParameters[1] = 0.0; 
 	ControlParameters[2] = 0.0; 
@@ -26,7 +26,7 @@ Galil::Galil(EmbeddedFunctions* Funcs, GCStringIn address) {
 Galil::Galil(const Galil& other) {
 	Functions = new EmbeddedFunctions();
 	g = GCon();
-	Functions->GOpen("192.168.0.120", &g);
+	Functions->GOpen("192.168.0.120 -d", &g);
 	ControlParameters[0] = other.ControlParameters[0];
 	ControlParameters[1] = other.ControlParameters[1];
 	ControlParameters[2] = other.ControlParameters[2];
@@ -36,6 +36,7 @@ Galil::Galil(const Galil& other) {
 }
 Galil::~Galil() {
 	Functions->GClose(g);
+	g = 0;
 	delete Functions;
 }
 void Galil::DigitalOutput(uint16_t value) {
@@ -113,6 +114,8 @@ void Galil::AnalogOutput(uint8_t channel, double voltage) {
 	lastReturn = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	lastResponse = buf;
 }
+
+
 void Galil::AnalogInputRange(uint8_t channel, uint8_t range) {
 	const std::string cmd = "AQ " + std::to_string(channel) + "," + std::to_string(range);
 

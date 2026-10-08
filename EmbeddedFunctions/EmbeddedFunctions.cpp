@@ -10,11 +10,9 @@ EmbeddedFunctions::~EmbeddedFunctions() {
 void EmbeddedFunctions::GOpen(String^ address, const int port) {
 	if (GalilMngHndl != nullptr) GClose();
 	try {
-		address = address->Trim();
-		if (address->EndsWith("-d"))
-			address = address->Substring(0, address->Length - 2)->Trim();
+		address = address->Replace(" -d", "");
 
-		GalilMngHndl = gcnew TcpClient(address, port); 
+		GalilMngHndl = gcnew TcpClient();
 		GalilMngHndl->SendTimeout = 500;
 		GalilMngHndl->ReceiveTimeout = 500;
 		GalilMngHndl->NoDelay = true;
@@ -42,36 +40,22 @@ String^ EmbeddedFunctions::GCommand(String^ command) {
 		throw gcnew InvalidOperationException("GCommand called before GOpen");
 	if (!command->EndsWith(";"))
 		command += ";";
-
-		command += "\r";
-
+	
 		try
 		{
-			array<Byte>^ sendData =
+			array<uint8_t>^ sendData =
 				Encoding::ASCII->GetBytes(command);
 
 			GalilStream->Write(sendData, 0, sendData->Length);
-			GalilStream->Flush();
 
-			array<Byte>^ recvData = gcnew array<Byte>(2048);
+			array<uint8_t>^ recvData = gcnew array<uint8_t>(2048);
 			String^ response = "";
+			Threading::Thread::Sleep(10);
+			GalilStream->Read(recvData, 0, recvData->Length);
+			Threading::Thread::Sleep(10);
+			response = Encoding::ASCII->GetString(recvData);
 
-			while (true)
-			{
-				int count = GalilStream->Read(
-					recvData, 0, recvData->Length);
-
-				if (count == 0)
-					throw gcnew Exception(
-						"Connection closed by the controller.");
-
-				response += Encoding::ASCII->GetString(
-					recvData, 0, count);
-
-				if (response->Contains(":") ||
-					response->Contains("?"))
-					break;
-			}
+			
 
 			return response;
 		}
