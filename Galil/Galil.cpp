@@ -51,7 +51,7 @@ void Galil::DigitalByteOutput(bool bank, uint8_t value) {
 	char buf[G_SMALL_BUFFER] = {};
 	if (bank) {
 		
-		const std::string cmd = "OP " +  std::to_string(0) + "," + std::to_string(value);
+		const std::string cmd = "OP ,"  + std::to_string(value);
 		lastReturn  = Functions->GCommand(g, cmd.c_str(), buf, sizeof(buf), nullptr);
 	}
 	else {

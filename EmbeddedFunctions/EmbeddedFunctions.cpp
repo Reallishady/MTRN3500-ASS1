@@ -41,7 +41,7 @@ String^ EmbeddedFunctions::GCommand(String^ command)
         throw gcnew ArgumentNullException("Command is empty");
     }
 
-    if (client == nullptr || !client->Connected) {
+    if (GalilMngHndl == nullptr || !GalilMngHndl->Connected) {
         throw gcnew InvalidOperationException("Connection is not open.");
     }
 
@@ -59,7 +59,7 @@ String^ EmbeddedFunctions::GCommand(String^ command)
     {
         GalilStream->Write(sendData, 0, sendData->Length);
 
-        array<uint8_t>^ recvData = gcnew array<uint8_t>(1024);
+        array<uint8_t>^ recvData = gcnew array<uint8_t>(2048);
 
         while (true)
         {
