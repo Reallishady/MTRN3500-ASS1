@@ -33,35 +33,52 @@ void EmbeddedFunctions::GClose() {
 	GalilStream = nullptr;
 	GalilMngHndl = nullptr;
 }
-String^ EmbeddedFunctions::GCommand(String^ command) {
-	if (command == nullptr || command->Length == 0)
-		throw gcnew ArgumentException("Command cannot be empty.");
-	if (GalilStream == nullptr)
-		throw gcnew InvalidOperationException("GCommand called before GOpen");
-	if (!command->EndsWith(";"))
-		command += ";";
-	
-		try
-		{
-			array<uint8_t>^ sendData =
-				Encoding::ASCII->GetBytes(command);
+String^ EmbeddedFunctions::GCommand(String^ command)
+{
+    String^ response = "";
 
-			GalilStream->Write(sendData, 0, sendData->Length);
+    if (command == nullptr || command->Length == 0) {
+        throw gcnew ArgumentNullException("Command is empty");
+    }
 
-			array<uint8_t>^ recvData = gcnew array<uint8_t>(2048);
-			String^ response = "";
-			Threading::Thread::Sleep(10);
-			GalilStream->Read(recvData, 0, recvData->Length);
-			Threading::Thread::Sleep(10);
-			response = Encoding::ASCII->GetString(recvData);
+    if (client == nullptr || !client->Connected) {
+        throw gcnew InvalidOperationException("Connection is not open.");
+    }
 
-			
+    if (GalilStream == nullptr) {
+        throw gcnew InvalidOperationException("Connection is not open.");
+    }
 
-			return response;
-		}
-		catch (Exception^ e)
-		{
-			throw gcnew Exception(
-				"GCommand failed: " + e->Message, e);
-		}
+    if (!command->EndsWith(";")) {
+        command += ";";
+    }
+
+    array<uint8_t>^ sendData = Encoding::ASCII->GetBytes(command);
+
+    try
+    {
+        GalilStream->Write(sendData, 0, sendData->Length);
+
+        array<uint8_t>^ recvData = gcnew array<uint8_t>(1024);
+
+        while (true)
+        {
+            int responseBytes = GalilStream->Read(recvData, 0, recvData->Length);
+            if (responseBytes == 0)
+            {
+                throw gcnew Exception("Connection closed by the Galil Controller.");
+            }
+
+            response += Encoding::ASCII->GetString(recvData, 0, responseBytes);
+            if (response->EndsWith(":") || response->EndsWith("?")) {
+                break;
+            }
+        }
+
+        return response;
+    }
+    catch (Exception^ e)
+    {
+        throw gcnew Exception("Error sending command: " + e->Message, e);
+    }
 }
